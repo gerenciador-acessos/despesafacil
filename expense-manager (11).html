@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DespesaFácil</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07070e; --s1:#0e0e1a; --s2:rgba(20,20,36,0.75); --s3:#1e1e30;
+  --bd:rgba(255,255,255,0.07); --bd2:rgba(255,255,255,0.12);
+  --accent:#7c6fff; --ag:rgba(124,111,255,0.35);
+  --green:#2dde98;  --gg:rgba(45,222,152,0.3);
+  --red:#ff4f72;    --rg:rgba(255,79,114,0.3);
+  --yellow:#ffc93c; --yg:rgba(255,201,60,0.28);
+  --cyan:#22d3ee;
+  --text:#f0f0fa; --text2:#8080a8; --text3:#4a4a6a;
+  --r:18px; --rsm:10px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+/* ── ANIMATED BACKGROUND ── */
+#bgc{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.16;animation:orbf 16s ease-in-out infinite;}
+.o1{width:600px;height:600px;background:var(--accent);top:-200px;left:-150px;animation-delay:0s;}
+.o2{width:500px;height:500px;background:var(--green);bottom:-150px;right:-100px;animation-delay:-6s;}
+.o3{width:350px;height:350px;background:var(--red);top:45%;left:45%;animation-delay:-11s;}
+@keyframes orbf{0%,100%{transform:translate(0,0)scale(1);}33%{transform:translate(40px,-50px)scale(1.06);}66%{transform:translate(-25px,30px)scale(.94);}}
+#bgc::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.022)1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022)1px,transparent 1px);background-size:48px 48px;}
+
+/* ── APP SHELL ── */
+.app{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:28px 24px 104px;}
+
+/* ── HEADER ── */
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;animation:fadeDown .5s ease both;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),#b56aff);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 22px var(--ag);animation:glow 3s ease-in-out infinite;}
+@keyframes glow{0%,100%{box-shadow:0 0 22px var(--ag);}50%{box-shadow:0 0 38px var(--ag),0 0 70px rgba(124,111,255,.12);}}
+.logo-text{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.logo-text em{color:var(--accent);font-style:normal;}
+.hdr-right{display:flex;align-items:center;gap:12px;}
+.hdr-date{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);}
+.btn-export{padding:8px 16px;border-radius:20px;border:1px solid var(--bd2);background:rgba(255,255,255,.04);color:var(--text2);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);}
+.btn-export:hover{color:var(--text);border-color:var(--accent);background:rgba(124,111,255,.08);}
+
+/* ── SUMMARY CARDS ── */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.card{position:relative;overflow:hidden;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:22px 20px;backdrop-filter:blur(20px);transition:transform .28s cubic-bezier(.34,1.56,.64,1),border-color .2s,box-shadow .2s;cursor:default;animation:fadeUp .5s ease both;}
+.card:nth-child(1){animation-delay:.06s}.card:nth-child(2){animation-delay:.12s}.card:nth-child(3){animation-delay:.18s}.card:nth-child(4){animation-delay:.24s}
+.card:hover{transform:translateY(-5px) scale(1.015);}
+.card.income:hover{border-color:rgba(45,222,152,.4);box-shadow:0 8px 32px rgba(45,222,152,.1);}
+.card.expense:hover{border-color:rgba(255,79,114,.4);box-shadow:0 8px 32px rgba(255,79,114,.1);}
+.card.balance:hover{border-color:rgba(124,111,255,.4);box-shadow:0 8px 32px var(--ag);}
+.card.count:hover{border-color:rgba(255,201,60,.4);box-shadow:0 8px 32px rgba(255,201,60,.1);}
+/* glow orb inside card */
+.card::before{content:'';position:absolute;width:140px;height:140px;border-radius:50%;top:-40px;right:-40px;opacity:.1;}
+.card.income::before{background:radial-gradient(circle,var(--green),transparent 70%);}
+.card.expense::before{background:radial-gradient(circle,var(--red),transparent 70%);}
+.card.balance::before{background:radial-gradient(circle,var(--accent),transparent 70%);}
+.card.count::before{background:radial-gradient(circle,var(--yellow),transparent 70%);}
+/* shimmer sweep */
+.card::after{content:'';position:absolute;top:0;left:-120%;width:60%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);transition:left .45s ease;}
+.card:hover::after{left:160%;}
+.card-icon{font-size:22px;margin-bottom:10px;display:block;}
+.card-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:1.6px;margin-bottom:8px;}
+.card-val{font-size:24px;font-weight:700;letter-spacing:-.8px;line-height:1;transition:color .3s;}
+.card.income .card-val{color:var(--green);}
+.card.expense .card-val{color:var(--red);}
+.card.balance .card-val{color:var(--accent);}
+.card.count .card-val{color:var(--yellow);}
+.card-sub{font-size:11px;margin-top:6px;color:var(--text3);font-family:'DM Mono',monospace;}
+
+/* ── MAIN GRID ── */
+.main{display:grid;grid-template-columns:360px 1fr;gap:20px;}
+.right-col{display:flex;flex-direction:column;gap:20px;}
+
+/* ── PANELS ── */
+.panel{background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:24px;backdrop-filter:blur(20px);animation:fadeUp .5s ease both;}
+.panel:nth-of-type(1){animation-delay:.28s}.panel:nth-of-type(2){animation-delay:.34s}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+.ptitle{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;}
+.dot{width:8px;height:8px;border-radius:50%;animation:blink 2.6s ease-in-out infinite;}
+.da{background:var(--accent);box-shadow:0 0 8px var(--accent);}
+.dp{background:#ff6584;box-shadow:0 0 8px #ff6584;}
+.dy{background:var(--yellow);box-shadow:0 0 8px var(--yellow);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── TYPE TOGGLE ── */
+.ttog{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
+.tbtn{padding:11px;border-radius:12px;border:1px solid var(--bd2);background:rgba(255,255,255,.03);color:var(--text2);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1);}
+.tbtn:hover:not(.active){color:var(--text);background:rgba(255,255,255,.06);}
+.tbtn.active.despesa{border-color:var(--red);background:rgba(255,79,114,.12);color:var(--red);box-shadow:0 0 18px rgba(255,79,114,.18);}
+.tbtn.active.receita{border-color:var(--green);background:rgba(45,222,152,.12);color:var(--green);box-shadow:0 0 18px rgba(45,222,152,.18);}
+
+/* ── FORM ── */
+.fg{margin-bottom:16px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+label{display:block;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;}
+input,select,textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--bd2);border-radius:var(--rsm);padding:11px 13px;font-family:'Syne',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s,background .2s;-webkit-appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);background:rgba(124,111,255,.06);box-shadow:0 0 0 3px rgba(124,111,255,.15);}
+input::placeholder{color:var(--text3);}
+select option{background:#15152a;}
+textarea{resize:vertical;min-height:72px;}
+.aw{position:relative;}
+.apfx{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-family:'DM Mono',monospace;font-size:14px;color:var(--text2);pointer-events:none;}
+.aw input{padding-left:36px;}
+.bsub{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#b06aff);border:none;border-radius:14px;color:#fff;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .25s;letter-spacing:.3px;position:relative;overflow:hidden;box-shadow:0 4px 22px var(--ag);}
+.bsub::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.18),transparent);opacity:0;transition:opacity .2s;}
+.bsub:hover{transform:translateY(-2px);box-shadow:0 8px 34px var(--ag);}
+.bsub:hover::before{opacity:1;}
+.bsub:active{transform:translateY(0);}
+.bcancel{width:100%;padding:10px;margin-top:8px;background:transparent;border:1px solid var(--bd2);border-radius:12px;color:var(--text2);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:none;}
+.bcancel:hover{color:var(--text);border-color:var(--text2);}
+
+/* ── TABLE CONTROLS ── */
+.tctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}
+.sw{position:relative;flex:1;min-width:130px;}
+.sw input{padding-left:36px;}
+.sico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text2);pointer-events:none;}
+.pills{display:flex;gap:6px;}
+.pill{padding:6px 14px;border-radius:20px;border:1px solid var(--bd2);background:transparent;color:var(--text2);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.pill.active{border-color:var(--accent);background:rgba(124,111,255,.12);color:var(--accent);}
+.pill:hover:not(.active){color:var(--text);border-color:var(--bd2);}
+select.msel{width:auto;padding:6px 10px;font-size:12px;border-radius:20px;border-color:var(--bd2);}
+
+/* ── TABLE ── */
+.twrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:500px;}
+thead th{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;padding:10px 12px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap;}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.035);transition:background .15s;animation:rowIn .3s ease both;}
+@keyframes rowIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+tbody tr:hover{background:rgba(255,255,255,.03);}
+tbody td{padding:12px 12px;font-size:13px;}
+.dm{font-weight:600;}
+.dn{font-size:11px;color:var(--text2);margin-top:1px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cbadge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.dcell{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);white-space:nowrap;}
+.pbadge{font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.05);color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;border:1px solid var(--bd);}
+.acell{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;white-space:nowrap;}
+.acell.neg{color:var(--red);}.acell.pos{color:var(--green);}
+.racts{display:flex;gap:5px;}
+.abt{width:30px;height:30px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--text2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.abt:hover{background:rgba(255,255,255,.05);color:var(--text);}
+.abt.del:hover{border-color:var(--red);color:var(--red);background:rgba(255,79,114,.07);}
+.abt.edt:hover{border-color:var(--accent);color:var(--accent);background:rgba(124,111,255,.07);}
+.empty{text-align:center;padding:60px 20px;color:var(--text2);}
+.empty .ei{font-size:44px;opacity:.3;margin-bottom:12px;}
+.empty p{font-size:13px;}
+
+/* ── PAGINATION ── */
+.pgn{display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:8px;}
+.pgi{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
+.pgbs{display:flex;gap:5px;}
+.pgb{width:28px;height:28px;border-radius:7px;border:1px solid var(--bd);background:transparent;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.pgb:hover,.pgb.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* ── CHART BARS ── */
+.cbars{display:flex;flex-direction:column;gap:12px;margin-top:18px;}
+.cbi{display:grid;grid-template-columns:130px 1fr 90px;align-items:center;gap:10px;}
+.cbl{font-size:12px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cbt{height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
+.cbf{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.34,1.2,.64,1);position:relative;}
+.cbf::after{content:'';position:absolute;right:0;top:0;bottom:0;width:5px;background:rgba(255,255,255,.55);border-radius:50%;filter:blur(2px);}
+.cba{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);text-align:right;}
+
+/* ── BOTTOM NAV (mobile) ── */
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(10,10,20,.9);border-top:1px solid var(--bd);backdrop-filter:blur(28px);padding-bottom:env(safe-area-inset-bottom,0px);}
+.bni{display:flex;justify-content:space-around;align-items:center;padding:8px 0;height:56px;}
+.bnb{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--text2);font-family:'Syne',sans-serif;font-size:9px;font-weight:600;cursor:pointer;padding:4px 0;border-radius:12px;transition:all .2s;flex:1;min-width:0;}
+.bnb .bni2{font-size:20px;transition:transform .2s;}
+.bnb.active{color:var(--accent);}
+.bnb.active .bni2{transform:scale(1.18);}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);z-index:100;align-items:center;justify-content:center;padding:20px;}
+.overlay.open{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--bd2);border-radius:20px;padding:28px;width:100%;max-width:400px;animation:modIn .3s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes modIn{from{opacity:0;transform:scale(.92) translateY(20px)}to{opacity:1;transform:none}}
+.mt{font-size:18px;font-weight:700;margin-bottom:6px;}
+.ms{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6;}
+.mbs{display:flex;gap:10px;}
+.mbs button{flex:1;padding:12px;border-radius:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+.mc{background:rgba(255,255,255,.05);border:1px solid var(--bd2);color:var(--text2);}
+.mc:hover{color:var(--text);}
+.md{background:var(--red);border:none;color:#fff;box-shadow:0 4px 16px var(--rg);}
+.md:hover{box-shadow:0 6px 24px var(--rg);transform:translateY(-1px);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:90px;right:20px;background:var(--s1);border:1px solid var(--bd2);border-radius:14px;padding:13px 18px;font-size:13px;font-weight:600;z-index:200;display:flex;align-items:center;gap:10px;transform:translateY(18px) scale(.95);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(20px);max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.toast.show{transform:none;opacity:1;}
+.toast.success{border-color:rgba(45,222,152,.4);}.toast.success .ti{color:var(--green);}
+.toast.error{border-color:rgba(255,79,114,.4);}.toast.error .ti{color:var(--red);}
+.toast.info{border-color:rgba(124,111,255,.4);}.toast.info .ti{color:var(--accent);}
+.ti{font-size:16px;}
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+
+/* ── RESPONSIVE: TABLET ── */
+@media(max-width:1024px){
+  .main{grid-template-columns:300px 1fr;}
+  .cbi{grid-template-columns:100px 1fr 80px;}
+}
+
+/* ── RESPONSIVE: MOBILE ── */
+@media(max-width:768px){
+  /* App shell — padding-bottom = bnav height (64px) + safe area + extra buffer */
+  .app{padding:16px 14px 0;}
+  .hdr-date,.btn-export{display:none;}
+  .logo-text{font-size:18px;}
+  .logo-icon{width:36px;height:36px;font-size:17px;}
+
+  /* Summary cards */
+  .summary{grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;}
+  .card{padding:13px 12px;border-radius:13px;}
+  .card-val{font-size:17px;}
+  .card-icon{font-size:16px;margin-bottom:5px;}
+  .card-sub{display:none;}
+
+  /* Main layout: stack vertically */
+  .main{grid-template-columns:1fr;gap:0;}
+  .tv{display:none;}
+  .tv.active{display:block;margin-bottom:0;padding-bottom:calc(64px + env(safe-area-inset-bottom, 0px) + 16px);}
+
+  /* Bottom nav */
+  .bnav{display:block;}
+  .pills{display:none;}
+
+  /* Table */
+  table{min-width:380px;}
+  .cbi{grid-template-columns:80px 1fr 65px;}
+
+  /* Toast above bnav */
+  .toast{bottom:calc(64px + env(safe-area-inset-bottom, 0px) + 8px);right:12px;left:12px;max-width:none;}
+
+  /* Form */
+  .frow{grid-template-columns:1fr;}
+
+  /* Poupômetro section on mobile */
+  #poupSection{
+    padding:0 14px calc(64px + env(safe-area-inset-bottom, 0px) + 20px) !important;
+    display:none;
+  }
+  #poupSection.mob-active{display:block !important;}
+  .poup-grid{grid-template-columns:1fr;}
+  .poup-card{padding:16px;}
+  .poup-speedo svg{width:150px !important;height:auto !important;}
+  .poup-modal-title{font-size:16px;}
+  .poup-modal{padding:22px 18px;margin:12px;}
+  .emoji-picker{grid-template-columns:repeat(8,1fr);}
+  .emoji-btn{width:30px;height:30px;font-size:15px;}
+  .dep-quick-row{gap:5px;}
+  .dep-quick-btn{padding:5px 10px;font-size:10px;}
+
+  /* Modals full-screen friendly */
+  .poup-overlay{align-items:flex-end;padding:0;}
+  .poup-modal{border-radius:20px 20px 0 0;max-height:85vh;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);}
+}
+
+@media(max-width:420px){
+  .summary{gap:7px;}
+  .card-val{font-size:15px;}
+  .card{padding:11px 10px;}
+  .poup-grid{gap:12px;}
+  .emoji-picker{grid-template-columns:repeat(8,1fr);}
+  .emoji-btn{width:28px;height:28px;font-size:14px;}
+}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:10px;}
+
+/* ── AI CHIP ── */
+.ai-chip{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 13px;border-radius:30px;
+  border:1px solid rgba(124,111,255,0.4);
+  background:rgba(124,111,255,0.08);
+  font-size:12px;font-weight:600;color:var(--accent);
+  cursor:pointer;transition:all .2s;
+  animation:chipIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.ai-chip:hover{background:rgba(124,111,255,0.18);border-color:var(--accent);transform:scale(1.02);}
+.ai-chip .chip-cat{color:var(--text);}
+.ai-chip .chip-conf{font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;margin-left:2px;}
+.ai-chip .chip-apply{
+  padding:2px 8px;border-radius:10px;
+  background:var(--accent);color:#fff;
+  font-size:10px;font-weight:700;margin-left:4px;
+}
+.ai-thinking{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;
+  animation:fadeUp .2s ease both;
+}
+.ai-dot-pulse{display:inline-flex;gap:3px;}
+.ai-dot-pulse span{
+  width:4px;height:4px;border-radius:50%;background:var(--accent);
+  animation:dotPulse 1.2s ease-in-out infinite;
+}
+.ai-dot-pulse span:nth-child(2){animation-delay:.2s;}
+.ai-dot-pulse span:nth-child(3){animation-delay:.4s;}
+@keyframes dotPulse{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+@keyframes chipIn{from{opacity:0;transform:translateY(6px) scale(.95)}to{opacity:1;transform:none}}
+
+/* ── POUPÔMETRO ── */
+.poup-section{margin-top:20px;}
+.poup-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.poup-title{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;}
+.btn-nova-meta{padding:8px 18px;border-radius:20px;border:1px solid rgba(124,111,255,.4);background:rgba(124,111,255,.08);color:var(--accent);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-nova-meta:hover{background:rgba(124,111,255,.18);transform:translateY(-1px);}
+.poup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+.poup-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text2);font-size:13px;}
+.poup-card{background:var(--s2);border:1px solid var(--bd);border-radius:18px;padding:20px;backdrop-filter:blur(20px);position:relative;overflow:hidden;transition:transform .25s,border-color .2s;}
+.poup-card:hover{transform:translateY(-3px);border-color:var(--bd2);}
+.poup-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.poup-card-emoji{font-size:26px;display:block;margin-bottom:4px;}
+.poup-card-name{font-size:15px;font-weight:700;margin-bottom:2px;}
+.poup-card-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);}
+.poup-card-btns{display:flex;gap:4px;}
+.poup-speedo{display:flex;justify-content:center;margin:10px 0 6px;}
+.poup-bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:6px;}
+.poup-saved-label{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;}
+.poup-saved-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--green);}
+.poup-status{font-size:11px;font-weight:700;text-align:right;}
+.poup-remaining{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);text-align:right;margin-top:2px;}
+.poup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.poup-overlay.open{display:flex;}
+.poup-modal{background:var(--s1);border:1px solid var(--bd2);border-radius:20px;padding:28px;width:100%;max-width:440px;animation:modIn .3s cubic-bezier(.34,1.56,.64,1) both;max-height:90vh;overflow-y:auto;}
+.poup-modal-title{font-size:18px;font-weight:700;margin-bottom:6px;}
+.poup-modal-sub{font-size:13px;color:var(--text2);margin-bottom:22px;line-height:1.5;}
+.poup-fg{margin-bottom:14px;}
+.poup-fg label{display:block;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;}
+.poup-fg input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--bd2);border-radius:10px;padding:11px 13px;font-family:'Syne',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
+.poup-fg input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,111,255,.15);}
+.emoji-picker{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-top:6px;}
+.emoji-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--bd);background:rgba(255,255,255,.03);font-size:17px;cursor:pointer;transition:all .15px;display:flex;align-items:center;justify-content:center;}
+.emoji-btn:hover{border-color:var(--bd2);}
+.emoji-btn.active{border-color:var(--accent);background:rgba(124,111,255,.15);}
+.poup-mbs{display:flex;gap:10px;margin-top:6px;}
+.poup-mbs button{flex:1;padding:12px;border-radius:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+.poup-cancel{background:rgba(255,255,255,.05);border:1px solid var(--bd2);color:var(--text2);}
+.poup-cancel:hover{color:var(--text);}
+.poup-submit{background:linear-gradient(135deg,var(--accent),#b06aff);border:none;color:#fff;box-shadow:0 4px 18px var(--ag);}
+.poup-submit:hover{transform:translateY(-1px);box-shadow:0 6px 26px var(--ag);}
+.dep-quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.dep-quick-btn{padding:5px 12px;border-radius:16px;border:1px solid var(--bd2);background:transparent;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s;}
+.dep-quick-btn:hover{border-color:var(--accent);color:var(--accent);}
+@media(max-width:768px){.poup-grid{grid-template-columns:1fr;}}
+
+</style>
+</head>
+<body>
+
+<!-- BG -->
+<div id="bgc">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+</div>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">💸</div>
+      <div class="logo-text">Despesa<em>Fácil</em></div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-date" id="hdrDate"></div>
+      <button class="btn-export" onclick="exportCSV()">↓ Exportar CSV</button>
+      <button class="btn-export" onclick="poupToggle()" style="color:var(--yellow);border-color:rgba(255,201,60,.4)">🎯 Metas</button>
+    </div>
+  </header>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="card income">
+      <span class="card-icon">↑</span>
+      <div class="card-label">Receitas</div>
+      <div class="card-val" id="vIncome">R$ 0,00</div>
+      <div class="card-sub" id="cIncome">0 itens</div>
+    </div>
+    <div class="card expense">
+      <span class="card-icon">↓</span>
+      <div class="card-label">Despesas</div>
+      <div class="card-val" id="vExpense">R$ 0,00</div>
+      <div class="card-sub" id="cExpense">0 itens</div>
+    </div>
+    <div class="card balance">
+      <span class="card-icon">⚖</span>
+      <div class="card-label">Saldo</div>
+      <div class="card-val" id="vBalance">R$ 0,00</div>
+      <div class="card-sub" id="sBal">—</div>
+    </div>
+    <div class="card count">
+      <span class="card-icon">📋</span>
+      <div class="card-label">Total</div>
+      <div class="card-val" id="vCount">0</div>
+      <div class="card-sub" id="sMonth"></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- FORM PANEL -->
+    <div class="panel tv active" id="tv-form">
+      <div class="ph">
+        <div class="ptitle"><div class="dot da"></div><span id="fTitle">Novo Lançamento</span></div>
+      </div>
+
+      <div class="ttog">
+        <button class="tbtn active despesa" id="btnD" onclick="setType('despesa')">↓ Despesa</button>
+        <button class="tbtn receita"         id="btnR" onclick="setType('receita')">↑ Receita</button>
+      </div>
+
+      <div class="fg">
+        <label style="display:flex;align-items:center;justify-content:space-between">
+          <span>Descrição</span>
+          <span id="aiLabel" style="display:none;font-size:10px;color:var(--accent);letter-spacing:.5px;animation:fadeDown .3s ease both">⚡ Sugestão automática</span>
+        </label>
+        <input type="text" id="desc" placeholder="Ex: Posto, Mercado, Netflix…" maxlength="60" autocomplete="off" oninput="onDescInput(this.value)">
+        <div id="aiChip" style="display:none;margin-top:8px"></div>
+      </div>
+      <div class="fg">
+        <label>Valor</label>
+        <div class="aw"><span class="apfx">R$</span><input type="number" id="amount" placeholder="0,00" min="0" step="0.01" inputmode="decimal"></div>
+      </div>
+      <div class="fg">
+        <label>Categoria</label>
+        <select id="cat">
+          <option value="">Selecione…</option>
+          <optgroup label="Despesas">
+            <option>🍔 Alimentação</option><option>🏠 Moradia</option><option>🚗 Transporte</option>
+            <option>💊 Saúde</option><option>🎓 Educação</option><option>🎮 Lazer</option>
+            <option>👗 Vestuário</option><option>💡 Utilidades</option><option>📦 Outros</option>
+          </optgroup>
+          <optgroup label="Receitas">
+            <option>💼 Salário</option><option>💰 Investimentos</option>
+            <option>🔁 Transferência</option><option>🎯 Freelance</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="frow fg">
+        <div><label>Data</label><input type="date" id="date"></div>
+        <div>
+          <label>Pagamento</label>
+          <select id="pay">
+            <option>💵 Dinheiro</option><option>💳 Débito</option><option>💳 Crédito</option>
+            <option>⚡ PIX</option><option>🏦 Transferência</option><option>📄 Boleto</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Observação <span style="opacity:.5;font-size:10px">(opcional)</span></label>
+        <textarea id="note" placeholder="Detalhes adicionais…"></textarea>
+      </div>
+
+      <button class="bsub" id="subBtn" onclick="saveExpense()">＋ Adicionar Lançamento</button>
+      <button class="bcancel" id="bcnc" onclick="resetForm()">✕ Cancelar edição</button>
+      <input type="hidden" id="editId">
+    </div>
+
+    <!-- RIGHT COL -->
+    <div class="right-col">
+
+      <!-- TABLE -->
+      <div class="panel tv active" id="tv-list">
+        <div class="ph">
+          <div class="ptitle"><div class="dot dp"></div>Lançamentos</div>
+        </div>
+        <div class="tctrl">
+          <div class="sw">
+            <span class="sico">🔍</span>
+            <input type="search" id="srch" placeholder="Buscar…" oninput="renderTable()">
+          </div>
+          <div class="pills">
+            <button class="pill active" onclick="setFilter('todos',this)">Todos</button>
+            <button class="pill"        onclick="setFilter('despesa',this)">Despesas</button>
+            <button class="pill"        onclick="setFilter('receita',this)">Receitas</button>
+          </div>
+          <select class="msel" id="msel" onchange="renderTable()"><option value="">Todos meses</option></select>
+        </div>
+        <div class="twrap">
+          <table>
+            <thead><tr><th>Descrição</th><th>Categoria</th><th>Data</th><th>Pagamento</th><th>Valor</th><th></th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="empty" id="empty" style="display:none"><div class="ei">📭</div><p>Nenhum lançamento encontrado</p></div>
+        </div>
+        <div class="pgn">
+          <span class="pgi" id="pgInfo"></span>
+          <div class="pgbs" id="pgBs"></div>
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <div class="panel tv active" id="tv-charts">
+        <div class="ph">
+          <div class="ptitle"><div class="dot dy"></div>Despesas por Categoria</div>
+        </div>
+        <div class="cbars" id="cbars"><p style="color:var(--text2);font-size:13px">Nenhuma despesa cadastrada.</p></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <div class="bni">
+    <button class="bnb active" id="nb-form" onclick="switchTab('form')"><span class="bni2">＋</span><span>Novo</span></button>
+    <button class="bnb"        id="nb-list" onclick="switchTab('list')"><span class="bni2">📋</span><span>Lista</span></button>
+    <button class="bnb"        id="nb-charts" onclick="switchTab('charts')"><span class="bni2">📊</span><span>Análise</span></button>
+    <button class="bnb" id="nb-poup" onclick="poupToggle()"><span class="bni2">🎯</span><span>Metas</span></button>
+  </div>
+</nav>
+
+
+<!-- POUPÔMETRO -->
+<div id="poupSection" style="display:none;position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 24px 28px;">
+  <div class="poup-header">
+    <div class="poup-title"><div class="dot dy"></div>🎯 Metas &amp; Poupômetro</div>
+    <button class="btn-nova-meta" onclick="openGoalModal()">＋ Nova Meta</button>
+  </div>
+  <div class="poup-grid" id="poupGrid"></div>
+</div>
+
+<!-- MODAL NOVA META -->
+<div class="poup-overlay" id="goalOverlay">
+  <div class="poup-modal">
+    <div class="poup-modal-title" id="goalModalTitle">🎯 Nova Meta</div>
+    <div class="poup-modal-sub">Defina um objetivo e acompanhe no velocímetro.</div>
+    <div class="poup-fg">
+      <label>Nome da Meta</label>
+      <input id="gName" type="text" placeholder="Ex: Carro novo, Casa própria, Viagem…" maxlength="40">
+    </div>
+    <div class="poup-fg">
+      <label>Valor Alvo (R$)</label>
+      <input id="gTarget" type="number" placeholder="0,00" min="1" step="0.01">
+    </div>
+    <div class="poup-fg">
+      <label>Já guardei (R$) — opcional</label>
+      <input id="gSaved" type="number" placeholder="0,00" min="0" step="0.01">
+    </div>
+    <div class="poup-fg">
+      <label>Ícone</label>
+      <div class="emoji-picker" id="emojiPicker">
+        <button class="emoji-btn active" data-em="🏠">🏠</button>
+        <button class="emoji-btn" data-em="🚗">🚗</button>
+        <button class="emoji-btn" data-em="✈️">✈️</button>
+        <button class="emoji-btn" data-em="💻">💻</button>
+        <button class="emoji-btn" data-em="📱">📱</button>
+        <button class="emoji-btn" data-em="🎓">🎓</button>
+        <button class="emoji-btn" data-em="💍">💍</button>
+        <button class="emoji-btn" data-em="🛒">🛒</button>
+        <button class="emoji-btn" data-em="⛵">⛵</button>
+        <button class="emoji-btn" data-em="🐾">🐾</button>
+        <button class="emoji-btn" data-em="🎯">🎯</button>
+        <button class="emoji-btn" data-em="💰">💰</button>
+        <button class="emoji-btn" data-em="🏋️">🏋️</button>
+        <button class="emoji-btn" data-em="🎮">🎮</button>
+        <button class="emoji-btn" data-em="🌴">🌴</button>
+        <button class="emoji-btn" data-em="⭐">⭐</button>
+      </div>
+    </div>
+    <input type="hidden" id="gEditId">
+    <div class="poup-mbs">
+      <button class="poup-cancel" onclick="closeGoalModal()">Cancelar</button>
+      <button class="poup-submit" onclick="saveGoal()">Salvar Meta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DEPOSITAR -->
+<div class="poup-overlay" id="depOverlay">
+  <div class="poup-modal">
+    <div class="poup-modal-title">💰 Depositar</div>
+    <div class="poup-modal-sub" id="depSubtitle">Quanto você guardou?</div>
+    <div class="poup-fg">
+      <label>Valor a Adicionar (R$)</label>
+      <input id="depAmt" type="number" placeholder="0,00" min="0.01" step="0.01">
+      <div class="dep-quick-row">
+        <button class="dep-quick-btn" onclick="qDep(50)">+R$ 50</button>
+        <button class="dep-quick-btn" onclick="qDep(100)">+R$ 100</button>
+        <button class="dep-quick-btn" onclick="qDep(200)">+R$ 200</button>
+        <button class="dep-quick-btn" onclick="qDep(500)">+R$ 500</button>
+        <button class="dep-quick-btn" onclick="qDep(1000)">+R$ 1.000</button>
+      </div>
+    </div>
+    <input type="hidden" id="depGId">
+    <div class="poup-mbs">
+      <button class="poup-cancel" onclick="closeDepModal()">Cancelar</button>
+      <button class="poup-submit" onclick="confirmDeposit()">✓ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="delOv" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="mt">Excluir lançamento?</div>
+    <div class="ms">Esta ação não pode ser desfeita. O registro será removido permanentemente.</div>
+    <div class="mbs">
+      <button class="mc" onclick="closeModal()">Cancelar</button>
+      <button class="md" onclick="confirmDel()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span class="ti" id="tIcon"></span><span id="tMsg"></span></div>
+
+<script>
+const COLS=['#7c6fff','#2dde98','#ff4f72','#ffc93c','#22d3ee','#f97316','#a78bfa','#34d399','#fb7185','#60a5fa'];
+const CC={};
+let EX=JSON.parse(localStorage.getItem('df4')||'[]');
+let TYPE='despesa', FILT='todos', DELID=null, PAGE=1;
+const PER=8;
+
+/* ════ POUPÔMETRO ════ */
+var GOALS = (function(){ try{ return JSON.parse(localStorage.getItem('df4_goals')||'[]'); }catch(e){ return []; } })();
+var selEmoji = '🏠';
+var depGId = null;
+var poupOpen = false;
+
+function savePoup(){ try{ localStorage.setItem('df4_goals', JSON.stringify(GOALS)); }catch(e){} }
+
+function poupToggle(){
+  var s = document.getElementById('poupSection');
+  if(!s) return;
+  var isMobile = window.innerWidth <= 768;
+  if(isMobile){
+    /* On mobile: switch tab view, hide all .tv panels */
+    poupOpen = true;
+    document.querySelectorAll('.tv').forEach(function(el){ el.classList.remove('active'); });
+    document.querySelectorAll('.bnb').forEach(function(b){ b.classList.remove('active'); });
+    var nb = document.getElementById('nb-poup');
+    if(nb) nb.classList.add('active');
+    s.classList.add('mob-active');
+    s.style.display = 'block';
+    renderGoals();
+    window.scrollTo({top:0, behavior:'smooth'});
+  } else {
+    /* On desktop: toggle visibility */
+    poupOpen = !poupOpen;
+    s.style.display = poupOpen ? 'block' : 'none';
+    if(poupOpen){ renderGoals(); s.scrollIntoView({behavior:'smooth', block:'start'}); }
+  }
+}
+
+function buildSpeedo(pct, size){
+  size = size || 170;
+  var cx = size/2, cy = size*0.54, r = size*0.36, tw = size*0.09;
+  var startDeg = -210, totalArc = 240;
+  function toRad(d){ return (d-90)*Math.PI/180; }
+  function pt(deg,rad){ return { x: cx+rad*Math.cos(toRad(deg)), y: cy+rad*Math.sin(toRad(deg)) }; }
+  function arc(a1,a2,rad){
+    var s=pt(a1,rad), e=pt(a2,rad), lg=(a2-a1)>180?1:0;
+    return 'M '+s.x.toFixed(2)+' '+s.y.toFixed(2)+' A '+rad+' '+rad+' 0 '+lg+' 1 '+e.x.toFixed(2)+' '+e.y.toFixed(2);
+  }
+  var clamp = Math.min(Math.max(pct,0),100);
+  var fillEnd = startDeg + totalArc*clamp/100;
+  var np = pt(fillEnd, r*0.88);
+  var nc = clamp>=70?'#2dde98':clamp>=40?'#ffc93c':'#ff4f72';
+  var ticks = '';
+  for(var i=0;i<=10;i++){
+    var ta=startDeg+totalArc*i/10, maj=(i%5===0);
+    var p1=pt(ta,r+tw*0.3), p2=pt(ta,r+tw*0.85);
+    ticks+='<line x1="'+p1.x.toFixed(1)+'" y1="'+p1.y.toFixed(1)+'" x2="'+p2.x.toFixed(1)+'" y2="'+p2.y.toFixed(1)+'" stroke="rgba(255,255,255,0.12)" stroke-width="'+(maj?1.5:0.7)+'"/>';
+  }
+  var uid = 'sp'+Math.random().toString(36).slice(2,7);
+  var h = size*0.68;
+  var p0 = pt(startDeg, r+tw*2.1), p100 = pt(startDeg+totalArc, r+tw*2.1);
+  return '<svg width="'+size+'" height="'+h+'" viewBox="0 0 '+size+' '+h+'" xmlns="http://www.w3.org/2000/svg">'+
+    '<defs>'+
+      '<linearGradient id="gr'+uid+'" x1="0%" y1="0%" x2="100%" y2="0%">'+
+        '<stop offset="0%" stop-color="#ff4f72"/>'+
+        '<stop offset="40%" stop-color="#ff8c42"/>'+
+        '<stop offset="65%" stop-color="#ffc93c"/>'+
+        '<stop offset="100%" stop-color="#2dde98"/>'+
+      '</linearGradient>'+
+      '<filter id="gw'+uid+'"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+    '</defs>'+
+    '<path d="'+arc(startDeg,startDeg+totalArc,r)+'" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="'+tw+'" stroke-linecap="round"/>'+
+    (clamp>0?'<path d="'+arc(startDeg,fillEnd,r)+'" fill="none" stroke="url(#gr'+uid+')" stroke-width="'+tw+'" stroke-linecap="round" filter="url(#gw'+uid+')" opacity="0.9"/>'  :'')+
+    ticks+
+    '<line x1="'+cx+'" y1="'+cy+'" x2="'+np.x.toFixed(2)+'" y2="'+np.y.toFixed(2)+'" stroke="rgba(0,0,0,0.3)" stroke-width="'+(size*0.022)+'" stroke-linecap="round" transform="translate(1.5,1.5)"/>'+
+    '<line x1="'+cx+'" y1="'+cy+'" x2="'+np.x.toFixed(2)+'" y2="'+np.y.toFixed(2)+'" stroke="'+nc+'" stroke-width="'+(size*0.022)+'" stroke-linecap="round" style="filter:drop-shadow(0 0 4px '+nc+')"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+(size*0.055)+'" fill="#1e1e30" stroke="'+nc+'" stroke-width="2"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+(size*0.026)+'" fill="'+nc+'"/>'+
+    '<text x="'+cx+'" y="'+(cy+r*0.38)+'" fill="'+nc+'" font-family="DM Mono,monospace" font-size="'+(size*0.13)+'" font-weight="700" text-anchor="middle">'+clamp+'%</text>'+
+    '<text x="'+p0.x.toFixed(1)+'" y="'+p0.y.toFixed(1)+'" fill="rgba(255,255,255,0.2)" font-family="DM Mono,monospace" font-size="'+(size*0.065)+'" text-anchor="middle">0</text>'+
+    '<text x="'+p100.x.toFixed(1)+'" y="'+p100.y.toFixed(1)+'" fill="rgba(255,255,255,0.2)" font-family="DM Mono,monospace" font-size="'+(size*0.065)+'" text-anchor="middle">100</text>'+
+  '</svg>';
+}
+
+function renderGoals(){
+  var grid = document.getElementById('poupGrid');
+  if(!grid) return;
+  if(!GOALS.length){
+    grid.innerHTML = '<div class="poup-empty"><div style="font-size:46px;opacity:.25;margin-bottom:12px">🎯</div><p>Nenhuma meta ainda.<br>Clique em <strong>＋ Nova Meta</strong> para começar!</p></div>';
+    return;
+  }
+  grid.innerHTML = GOALS.map(function(g){
+    var pct = g.target>0 ? Math.min(Math.round(g.saved/g.target*100),100) : 0;
+    var rem = Math.max(g.target-g.saved, 0);
+    var sc  = pct>=70?'#2dde98':pct>=40?'#ffc93c':'#ff4f72';
+    var sl  = pct>=100?'🏆 Concluída!':pct>=70?'🟢 Quase lá!':pct>=40?'🟡 Avançando':'🔴 Iniciando';
+    var eid = g.id;
+    return '<div class="poup-card">'+
+      '<div class="poup-card-top">'+
+        '<div>'+
+          '<span class="poup-card-emoji">'+(g.emoji||'🎯')+'</span>'+
+          '<div class="poup-card-name">'+escG(g.name)+'</div>'+
+          '<div class="poup-card-meta">Meta: '+fmt(g.target)+'</div>'+
+        '</div>'+
+        '<div class="poup-card-btns">'+
+          '<button class="abt" title="Depositar" onclick="openDep(\''+eid+'\')">＋</button>'+
+          '<button class="abt edt" title="Editar" onclick="editGoal(\''+eid+'\')">✎</button>'+
+          '<button class="abt del" title="Excluir" onclick="delGoal(\''+eid+'\')">✕</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="poup-speedo">'+buildSpeedo(pct)+'</div>'+
+      '<div class="poup-bottom">'+
+        '<div>'+
+          '<div class="poup-saved-label">Guardado</div>'+
+          '<div class="poup-saved-val">'+fmt(g.saved)+'</div>'+
+        '</div>'+
+        '<div>'+
+          '<div class="poup-status" style="color:'+sc+'">'+sl+'</div>'+
+          '<div class="poup-remaining">'+(rem>0?'Faltam '+fmt(rem):'✓ Meta atingida')+'</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function escG(s){ var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function openGoalModal(){
+  selEmoji='🏠';
+  document.getElementById('goalModalTitle').textContent='🎯 Nova Meta';
+  document.getElementById('gName').value='';
+  document.getElementById('gTarget').value='';
+  document.getElementById('gSaved').value='';
+  document.getElementById('gEditId').value='';
+  document.querySelectorAll('.emoji-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.em==='🏠'); });
+  document.getElementById('goalOverlay').classList.add('open');
+}
+function closeGoalModal(){ document.getElementById('goalOverlay').classList.remove('open'); }
+
+function editGoal(id){
+  var g=GOALS.find(function(x){ return x.id===id; });
+  if(!g) return;
+  selEmoji=g.emoji||'🏠';
+  document.getElementById('goalModalTitle').textContent='✏️ Editar Meta';
+  document.getElementById('gName').value=g.name;
+  document.getElementById('gTarget').value=g.target;
+  document.getElementById('gSaved').value=g.saved;
+  document.getElementById('gEditId').value=g.id;
+  document.querySelectorAll('.emoji-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.em===selEmoji); });
+  document.getElementById('goalOverlay').classList.add('open');
+}
+
+function saveGoal(){
+  var name=document.getElementById('gName').value.trim();
+  var target=parseFloat(document.getElementById('gTarget').value)||0;
+  var saved=parseFloat(document.getElementById('gSaved').value)||0;
+  var editId=document.getElementById('gEditId').value;
+  if(!name){ toast('Informe o nome da meta!','error'); return; }
+  if(target<=0){ toast('Informe um valor alvo!','error'); return; }
+  saved=Math.min(saved,target);
+  if(editId){
+    var g=GOALS.find(function(x){ return x.id===editId; });
+    if(g){ g.name=name; g.target=target; g.saved=saved; g.emoji=selEmoji; }
+    toast('Meta atualizada!','success');
+  } else {
+    GOALS.push({id:'g'+Date.now(), name:name, target:target, saved:saved, emoji:selEmoji});
+    toast('Meta criada! 🎯','success');
+  }
+  savePoup(); closeGoalModal(); renderGoals();
+}
+
+function delGoal(id){
+  GOALS=GOALS.filter(function(g){ return g.id!==id; });
+  savePoup(); renderGoals(); toast('Meta removida','info');
+}
+
+function openDep(id){
+  var g=GOALS.find(function(x){ return x.id===id; });
+  if(!g) return;
+  depGId=id;
+  document.getElementById('depSubtitle').textContent=g.name+' — adicione o valor guardado';
+  document.getElementById('depAmt').value='';
+  document.getElementById('depGId').value=id;
+  document.getElementById('depOverlay').classList.add('open');
+}
+function closeDepModal(){ document.getElementById('depOverlay').classList.remove('open'); }
+function qDep(v){ document.getElementById('depAmt').value=v; }
+
+function confirmDeposit(){
+  var id=document.getElementById('depGId').value;
+  var amt=parseFloat(document.getElementById('depAmt').value)||0;
+  if(amt<=0){ toast('Informe um valor!','error'); return; }
+  var g=GOALS.find(function(x){ return x.id===id; });
+  if(!g) return;
+  g.saved=Math.min(g.saved+amt, g.target);
+  savePoup(); closeDepModal(); renderGoals();
+  var pct=Math.round(g.saved/g.target*100);
+  toast(g.saved>=g.target?'🏆 Meta concluída! Parabéns!':'+'+fmt(amt)+' depositado! '+pct+'% atingido 🎯','success');
+}
+
+document.addEventListener('click', function(e){
+  var eb=e.target.closest('.emoji-btn');
+  if(eb){ selEmoji=eb.dataset.em; document.querySelectorAll('.emoji-btn').forEach(function(b){ b.classList.remove('active'); }); eb.classList.add('active'); }
+  if(e.target.id==='goalOverlay') closeGoalModal();
+  if(e.target.id==='depOverlay')  closeDepModal();
+});
+/* ════ FIM POUPÔMETRO ════ */
+
+(function boot(){
+  const n=new Date();
+  document.getElementById('hdrDate').textContent=n.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('sMonth').textContent=n.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  document.getElementById('date').value=n.toISOString().slice(0,10);
+  // Force reload Nubank data (clears any previous local data)
+  localStorage.removeItem('df4');
+  EX=[];
+  seed();
+  buildM(); render();
+})();
+
+/* MOBILE TABS */
+let activeT='form';
+function switchTab(t){
+  activeT=t;
+  /* Always hide poup section when switching to other tabs */
+  var ps = document.getElementById('poupSection');
+  if(ps){ ps.style.display='none'; ps.classList.remove('mob-active'); poupOpen=false; }
+  if(window.innerWidth>768) return;
+  document.querySelectorAll('.tv').forEach(el=>el.classList.toggle('active',el.id==='tv-'+t));
+  document.querySelectorAll('.bnb').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nb-'+t);
+  if(nb) nb.classList.add('active');
+}
+window.addEventListener('resize',()=>{
+  var ps = document.getElementById('poupSection');
+  if(window.innerWidth>768){
+    document.querySelectorAll('.tv').forEach(el=>el.classList.add('active'));
+    if(ps && poupOpen) ps.style.display='block';
+  } else {
+    if(ps){ ps.style.display='none'; ps.classList.remove('mob-active'); }
+    switchTab(activeT);
+  }
+});
+
+/* TYPE */
+function setType(t){
+  TYPE=t;
+  document.getElementById('btnD').className='tbtn despesa'+(t==='despesa'?' active':'');
+  document.getElementById('btnR').className='tbtn receita'+(t==='receita'?' active':'');
+}
+
+/* FILTER */
+function setFilter(f,el){
+  FILT=f; PAGE=1;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderTable();
+}
+
+/* DATA */
+function filtered(){
+  const q=(document.getElementById('srch').value||'').toLowerCase();
+  const mo=document.getElementById('msel').value;
+  return EX.filter(e=>{
+    if(FILT!=='todos'&&e.type!==FILT) return false;
+    if(q&&!e.desc.toLowerCase().includes(q)&&!e.cat.toLowerCase().includes(q)) return false;
+    if(mo&&!e.date.startsWith(mo)) return false;
+    return true;
+  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+}
+
+function render(){renderSummary();renderTable();renderChart();}
+
+function renderSummary(){
+  const inc=EX.filter(e=>e.type==='receita').reduce((s,e)=>s+e.amt,0);
+  const exp=EX.filter(e=>e.type==='despesa').reduce((s,e)=>s+e.amt,0);
+  const bal=inc-exp;
+  anim('vIncome',inc); anim('vExpense',exp); anim('vBalance',bal);
+  document.getElementById('vCount').textContent=EX.length;
+  document.getElementById('cIncome').textContent=EX.filter(e=>e.type==='receita').length+' itens';
+  document.getElementById('cExpense').textContent=EX.filter(e=>e.type==='despesa').length+' itens';
+  document.getElementById('sBal').textContent=bal>=0?'✓ positivo':'⚠ negativo';
+  document.getElementById('vBalance').style.color=bal>=0?'var(--green)':'var(--red)';
+}
+
+function anim(id,target){
+  const el=document.getElementById(id);
+  const dur=700, t0=performance.now();
+  const abs=Math.abs(target), sign=target<0?'-':'';
+  function tick(t){
+    const p=Math.min((t-t0)/dur,1);
+    const e=1-Math.pow(1-p,3);
+    el.textContent=(sign||'')+fmt(abs*e);
+    if(p<1) requestAnimationFrame(tick);
+    else el.textContent=fmt(target);
+  }
+  requestAnimationFrame(tick);
+}
+
+function renderTable(){
+  const data=filtered(), total=data.length;
+  const pages=Math.max(1,Math.ceil(total/PER));
+  if(PAGE>pages) PAGE=1;
+  const s=(PAGE-1)*PER, sl=data.slice(s,s+PER);
+  const tb=document.getElementById('tbody'), em=document.getElementById('empty');
+  if(!sl.length){tb.innerHTML='';em.style.display='block';}
+  else{
+    em.style.display='none';
+    tb.innerHTML=sl.map((e,i)=>`<tr style="animation-delay:${i*.04}s">
+      <td><div class="dm">${esc(e.desc)}</div>${e.note?`<div class="dn">${esc(e.note)}</div>`:''}</td>
+      <td><span class="cbadge" style="background:${cc(e.cat)}1a;color:${cc(e.cat)}">${e.cat}</span></td>
+      <td><span class="dcell">${fd(e.date)}</span></td>
+      <td><span class="pbadge">${e.pay}</span></td>
+      <td><span class="acell ${e.type==='despesa'?'neg':'pos'}">${e.type==='despesa'?'−':'+'}${fmt(e.amt)}</span></td>
+      <td><div class="racts">
+        <button class="abt edt" title="Editar" onclick="editRow('${e.id}')">✏</button>
+        <button class="abt del" title="Excluir" onclick="openDel('${e.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('');
+  }
+  document.getElementById('pgInfo').textContent=`${s+1}–${Math.min(s+PER,total)} de ${total}`;
+  const pb=document.getElementById('pgBs'); pb.innerHTML='';
+  for(let i=1;i<=pages;i++){
+    const b=document.createElement('button');
+    b.className='pgb'+(i===PAGE?' active':'');
+    b.textContent=i;
+    b.onclick=()=>{PAGE=i;renderTable();};
+    pb.appendChild(b);
+  }
+}
+
+function renderChart(){
+  const tot={};
+  EX.filter(e=>e.type==='despesa').forEach(e=>{tot[e.cat]=(tot[e.cat]||0)+e.amt;});
+  const sorted=Object.entries(tot).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max=sorted[0]?.[1]||1;
+  const el=document.getElementById('cbars');
+  if(!sorted.length){el.innerHTML='<p style="color:var(--text2);font-size:13px">Nenhuma despesa cadastrada.</p>';return;}
+  el.innerHTML=sorted.map(([cat,val])=>`
+    <div class="cbi">
+      <div class="cbl">${cat}</div>
+      <div class="cbt"><div class="cbf" style="width:0;background:${cc(cat)}" data-w="${(val/max*100).toFixed(1)}"></div></div>
+      <div class="cba">${fmt(val)}</div>
+    </div>`).join('');
+  requestAnimationFrame(()=>document.querySelectorAll('.cbf').forEach(f=>{f.style.width=f.dataset.w+'%';}));
+}
+
+/* SAVE */
+function saveExpense(){
+  const desc=document.getElementById('desc').value.trim();
+  const amt=parseFloat(document.getElementById('amount').value);
+  const cat=document.getElementById('cat').value;
+  const date=document.getElementById('date').value;
+  const pay=document.getElementById('pay').value;
+  const note=document.getElementById('note').value.trim();
+  const eid=document.getElementById('editId').value;
+  if(!desc) return toast('Insira uma descrição','error');
+  if(!amt||amt<=0) return toast('Valor inválido','error');
+  if(!cat) return toast('Selecione a categoria','error');
+  if(!date) return toast('Insira a data','error');
+  if(eid){
+    const i=EX.findIndex(e=>e.id===eid);
+    EX[i]={...EX[i],desc,amt,cat,date,pay,note,type:TYPE};
+    toast('Atualizado!','success'); resetForm();
+  } else {
+    EX.push({id:Date.now().toString(),desc,amt,cat,date,pay,note,type:TYPE});
+    toast('Adicionado!','success');
+    document.getElementById('desc').value='';
+    document.getElementById('amount').value='';
+    document.getElementById('note').value='';
+    document.getElementById('date').value=new Date().toISOString().slice(0,10);
+    if(window.innerWidth<=768) setTimeout(()=>switchTab('list'),400);
+  }
+  save(); buildM(); render();
+}
+
+function editRow(id){
+  const e=EX.find(x=>x.id===id); if(!e) return;
+  document.getElementById('desc').value=e.desc;
+  document.getElementById('amount').value=e.amt;
+  document.getElementById('cat').value=e.cat;
+  document.getElementById('date').value=e.date;
+  document.getElementById('pay').value=e.pay;
+  document.getElementById('note').value=e.note||'';
+  document.getElementById('editId').value=e.id;
+  setType(e.type);
+  document.getElementById('fTitle').textContent='Editar Lançamento';
+  document.getElementById('subBtn').textContent='✔ Salvar Alterações';
+  document.getElementById('subBtn').style.background='linear-gradient(135deg,var(--yellow),#ff9f43)';
+  document.getElementById('subBtn').style.boxShadow='0 4px 20px var(--yg)';
+  document.getElementById('bcnc').style.display='block';
+  if(window.innerWidth<=768) switchTab('form');
+}
+
+function resetForm(){
+  ['desc','amount','note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('editId').value='';
+  document.getElementById('fTitle').textContent='Novo Lançamento';
+  document.getElementById('subBtn').textContent='＋ Adicionar Lançamento';
+  document.getElementById('subBtn').style.background='';
+  document.getElementById('subBtn').style.boxShadow='';
+  document.getElementById('bcnc').style.display='none';
+  setType('despesa');
+}
+
+/* DELETE */
+function openDel(id){DELID=id;document.getElementById('delOv').classList.add('open');}
+function closeModal(){document.getElementById('delOv').classList.remove('open');DELID=null;}
+function confirmDel(){EX=EX.filter(e=>e.id!==DELID);save();render();closeModal();toast('Removido','info');}
+
+/* EXPORT */
+function exportCSV(){
+  const hdr='Tipo,Descrição,Valor,Categoria,Data,Pagamento,Observação';
+  const rows=EX.map(e=>[e.type,`"${e.desc}"`,e.amt,`"${e.cat}"`,e.date,e.pay,`"${e.note||''}"`].join(','));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([hdr,...rows].join('\n'));
+  a.download='despesas.csv'; a.click();
+  toast('CSV exportado!','success');
+}
+
+/* MONTH FILTER */
+function buildM(){
+  const sel=document.getElementById('msel'), cur=sel.value;
+  while(sel.options.length>1) sel.remove(1);
+  [...new Set(EX.map(e=>e.date.slice(0,7)))].sort().reverse().forEach(m=>{
+    const o=document.createElement('option'); o.value=m;
+    const[y,mo]=m.split('-');
+    o.textContent=new Date(+y,+mo-1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    sel.appendChild(o);
+  });
+  if(cur) sel.value=cur;
+}
+
+/* ══════════════════════════════════════════════
+   CLASSIFICADOR OFFLINE — dicionário com 400+ termos
+   Funciona sem internet, sem API key, zero custo.
+   ══════════════════════════════════════════════ */
+const DICIONARIO = [
+
+  /* ── 🍔 ALIMENTAÇÃO ── */
+  { cat:'🍔 Alimentação', tipo:'despesa', conf:99, termos:[
+    'mercado','supermercado','hipermercado','minimercado','mercearia',
+    'hortifruti','sacolão','frutaria','quitanda','açougue','frigorífico',
+    'peixaria','padaria','panificadora','confeitaria','doceria','bistrô',
+    'restaurante','lanchonete','hamburgueria','pizzaria','sushiaria','japonês',
+    'churrascaria','rodízio','buffet','self service','self-service',
+    'ifood','rappi','uber eats','uber eat','james','loggi food',
+    'mcdonalds','mc donalds','mc donald','burguer king','burger king','bk',
+    'bob\'s','bobs','subway','giraffas','habib','habibs','outback',
+    'dominos','domino\'s','pizza hut','spoleto','madero','coco bambu',
+    'cabana','chilli beans food','frango','kfc','popeyes',
+    'starbucks','santa lolla café','café','cafeteria','bistrô',
+    'sorvete','sorveteria','açaí','açaíteria','tapioca','crepe',
+    'salgado','pastelaria','pastel','lanche','sanduíche','marmita',
+    'mateus','carrefour','extra','pão de açúcar','assaí','atacadão',
+    'sams club','sam\'s','costco','makro','tenda','redes','comper',
+    'prezunic','supernosso','hortifruti','g.barbosa','gbarbosa',
+    'walmart','big','maxxi','rede smart','rede econômica','rede top',
+    'varejão','feira','sacolão','verdura','fruta','alimento',
+    'bebida','cerveja','vinho','whisky','bar','boteco','pub',
+    'rappi','delivery','pedido','comida','refeição','almoço','jantar',
+    'café da manhã','desjejum','lanche da tarde','ceia',
+    'laticínio','leite','queijo','iogurte','manteiga','ovo','ovos',
+    'água','suco','refrigerante','energético','isotônico',
+    'mp *pizzaria','mp*pizza','mp *burger','mp*restau',
+    'adeventos','adeven' // evento de food
+  ]},
+
+  /* ── 🚗 TRANSPORTE ── */
+  { cat:'🚗 Transporte', tipo:'despesa', conf:98, termos:[
+    'uber','99','99app','99pop','cabify','lady driver','indriver',
+    'táxi','taxi','mototaxi','moto táxi',
+    'posto','combustível','gasolina','etanol','diesel','alcool','álcool',
+    'shell','petrobras','ipiranga','br distribuidora','ale combustíveis',
+    'raizen','texaco','esso','posto bandeira',
+    'pedágio','sem parar','conectcar','veloe','move mais','via fácil',
+    'estacionamento','zona azul','estapar','multipark','parking',
+    'ônibus','metrô','metro','trem','brt','vlt','lotação','van',
+    'bilhete único','cartão transporte','recarga transporte','sptrans',
+    'rodoviária','passagem','gol','latam','azul','avianca','voepass',
+    'decolar','cvc viagem','hotel','pousada','hostel','airbnb',
+    'localiza','movida','unidas','hertz','avis','budget','rentcars',
+    'oficina','mecânica','borracharia','funilaria','pintura auto',
+    'troca de óleo','revisão','pneu','gppneus','pneus','borracha',
+    'peça','autopeça','rolamento','freio','amortecedor',
+    'renov','toyota','volkswagen','fiat','chevrolet','ford','hyundai',
+    'ipva','dpvat','seguro veículo','licenciamento',
+    'giroscar','mp *giro','autopecas','automotivo',
+    'nova hidraulica','hidráulica','radiador','suspensão',
+    'bicicleta','bike','patinete','scooter','tembici','bike itaú',
+    'yellow','grin','lime','vaga','carga veículo'
+  ]},
+
+  /* ── 💊 SAÚDE ── */
+  { cat:'💊 Saúde', tipo:'despesa', conf:97, termos:[
+    'farmácia','drogaria','droga','ultrafarma','drogasil','drograria',
+    'raia','pacheco','panvel','nissei','onofre','coop farma',
+    'remédio','medicamento','vitamina','suplemento','whey','creatina',
+    'médico','clínica','consultório','hospital','upa','pronto socorro',
+    'emergência','internação','cirurgia','exame','laboratório',
+    'raio x','ultrassom','tomografia','ressonância','endoscopia',
+    'dentista','odonto','ortodontia','implante','prótese dentária',
+    'psicólogo','psiquiatra','terapeuta','terapia','psicoterapia',
+    'fisioterapia','nutricionista','nutrição','fonoaudiologia',
+    'oftalmologista','óculos','lente','ótica','óticas','visão',
+    'unimed','bradesco saúde','sulamerica saúde','amil','hapvida',
+    'notredame','intermédica','gndi','careplus','omint',
+    'plano de saúde','convênio médico','saúde',
+    'academia','smartfit','bluefit','bio ritmo','bodytech',
+    'fit mania','opera fitness','contours','crossfit',
+    'pilates','yoga','zumba','spinning','natação','musculação',
+    'clínica performe','genesis','performe','bien estar',
+    'vacina','vacinação','imunização','anti','check-up',
+    'spa','massagem terapêutica','acupuntura','quiropraxia',
+    'norte farma','ultrafarma','farmavida','bom preço farma'
+  ]},
+
+  /* ── 🎮 LAZER ── */
+  { cat:'🎮 Lazer', tipo:'despesa', conf:97, termos:[
+    'netflix','hbo','hbo max','max','disney','disney+','star+',
+    'amazon prime','prime video','apple tv','apple.com','applecombill',
+    'paramount','globoplay','claro video','telecine','mubi',
+    'spotify','deezer','tidal','apple music','youtube premium',
+    'steam','xbox','playstation','psn','nintendo','epic games',
+    'twitch','origin','battlenet','battle.net','ubisoft',
+    'cinema','ingresso','cinemark','uci','kinoplex','cinesystem',
+    'teatro','show','festival','concerto','ópera','ballet',
+    'parque','hopi hari','beto carrero','thermas','wet\'n wild',
+    'jogo','videogame','game','gaming',
+    'livro','livraria','amazon kindle','kobo','saraiva','cultura',
+    'turismo','viagem','excursão','passeio',
+    'esporte','bilhar','boliche','golfe','tênis','squash','padel',
+    'ifd*ifood club','clube','assinatura','subscription','sub',
+    'google play','play store','app store',
+    'adeventos','eventos','ingresso','show','festa','balada',
+    'bar','boate','danceteria','night','lounge',
+    'magazine','revista','jornal','news','notícia',
+    'hobby','artesanato','pintura','fotografia','música','instrumento'
+  ]},
+
+  /* ── 💡 UTILIDADES ── */
+  { cat:'💡 Utilidades', tipo:'despesa', conf:96, termos:[
+    'luz','energia elétrica','enel','cemig','copel','celesc','coelba',
+    'celpe','elektro','cpfl','equatorial','light','eletropaulo',
+    'água','saneamento','sabesp','embasa','compesa','cagece','sanepar',
+    'gás','comgás','gas natural','naturgy','copagaz','liquigás',
+    'internet','banda larga','wi-fi','wifi','fibra','vivo fibra',
+    'claro net','net vírtua','oi fibra','tim live','sky','directv',
+    'telefone','celular','plano','tim','claro','vivo','oi','nextel',
+    'sky móvel','algar','sercomtel',
+    'google workspace','g suite','microsoft 365','office 365',
+    'aws','amazon aws','azure','gcp','google cloud','digitalocean',
+    'hostgator','locaweb','kinghost','uol host','godaddy',
+    'domínio','ssl','hospedagem','servidor','vps','cdn',
+    'fastcomet','bluehost','siteground','namecheap',
+    'condomínio','taxa condominial','fundo de reserva',
+    'iptu','ipva','licenciamento','taxa','tarifa','contribuição',
+    'seguro residencial','seguro vida','seguro','porto seguro',
+    'bradesco seguros','itaú seguros','sulamerica','zurich',
+    'aluguel equipamento','locação','streaming profissional',
+    'slack','notion','trello','asana','jira','figma','canva pro',
+    'dropbox','onedrive','icloud','google one',
+    'zoom','meets','teams','webex','meet',
+    'conta','fatura','mensalidade','recorrente'
+  ]},
+
+  /* ── 🏠 MORADIA ── */
+  { cat:'🏠 Moradia', tipo:'despesa', conf:98, termos:[
+    'aluguel','locação','arrendamento','aluguer',
+    'iptu','condomínio','síndico','administradora',
+    'reformar','reforma','obra','construção','pedreiro','eletricista',
+    'encanador','pintor','marceneiro','carpinteiro','gesseiro',
+    'material de construção','leroy merlin','leroy','c&c','telhanorte',
+    'sodimac','quero quero','dicico','tok stok','tok&stok',
+    'mobília','móveis','sofá','cama','guarda-roupa','mesa','cadeira',
+    'eletrodoméstico','geladeira','fogão','micro-ondas','lavadora',
+    'secadora','máquina de lavar','ar condicionado','ventilador',
+    'cortina','tapete','lustre','luminária','decoração',
+    'ikea','etna','lojas americanas','magazine luiza','casas bahia',
+    'hipermercado','utilidades domésticas','cama mesa e banho',
+    'limpeza','produto de limpeza','detergente','sabão','amaciante',
+    'desinfetante','multiuso','vassoura','rodo','esfregão',
+    'zelador','portaria','segurança','câmera','alarme',
+    'mudança','frete mudança','guarda-móveis','self storage'
+  ]},
+
+  /* ── 🎓 EDUCAÇÃO ── */
+  { cat:'🎓 Educação', tipo:'despesa', conf:97, termos:[
+    'escola','colégio','faculdade','universidade','instituto',
+    'mensalidade escolar','matrícula','anuidade','semestre',
+    'curso','aula','treinamento','capacitação','workshop','bootcamp',
+    'udemy','hotmart','coursera','alura','dio','rocketseat',
+    'escola da nuvem','descomplica','estuda','stoodi','khanmigo',
+    'livro','apostila','material escolar','caderno','caneta',
+    'mochila escolar','uniforme escolar','lápis','borracha',
+    'idioma','inglês','espanhol','francês','alemão','mandarim',
+    'cultura inglesa','wizard','fisk','ccaa','skill','yázigi',
+    'creche','berçário','pré escola','maternal',
+    'pós graduação','mestrado','doutorado','especialização','mba',
+    'mentoria','coaching','palestra','congresso','seminário',
+    'certificação','prova','enem','concurso','cursinho',
+    'papelaria','kalunga','staples','tilibra',
+    'livraria','saraiva','cultura','estante virtual','amazon livros',
+    'biblioteca','acervo digital','assinatura acadêmica'
+  ]},
+
+  /* ── 👗 VESTUÁRIO ── */
+  { cat:'👗 Vestuário', tipo:'despesa', conf:96, termos:[
+    'roupa','roupas','vestuário','moda','fashion',
+    'camiseta','camisa','calça','jeans','bermuda','short','saia',
+    'vestido','blusa','moletom','casaco','jaqueta','sobretudo',
+    'tênis','sapato','sandália','bota','chinelo','rasteirinha',
+    'cueca','calcinha','sutiã','meia','lingerie','pijama',
+    'renner','riachuelo','marisa','c&a','hering','forever 21',
+    'zara','h&m','farm','animale','colcci','forum','reserva',
+    'aramis','dudalina','brooks brothers','lacoste','tommy hilfiger',
+    'adidas','nike','puma','fila','asics','mizuno','under armour',
+    'netshoes','centauro','decathlon','intersport',
+    'shopee roupa','aliexpress roupa','shein','dafiti','amaro',
+    'alfaiataria','costura','costureiro','ajuste roupa',
+    'lavanderia','tinturaria','passagem roupa','lavagem seca',
+    'bijuteria','acessório','bolsa','carteira','cinto','óculos moda',
+    'relogio','relógio','joias','jóias','ouro','prata','anel','colar'
+  ]},
+
+  /* ── 💼 SALÁRIO / RECEITAS ── */
+  { cat:'💼 Salário', tipo:'receita', conf:99, termos:[
+    'salário','salario','holerite','contracheque','folha de pagamento',
+    'pagamento mensal','pro labore','pró labore','remuneração',
+    '13º salário','décimo terceiro','férias','rescisão','fgts',
+    'vale','adiantamento','bonificação','comissão'
+  ]},
+
+  /* ── 🎯 FREELANCE ── */
+  { cat:'🎯 Freelance', tipo:'receita', conf:97, termos:[
+    'freelance','freela','free lancer','autônomo','prestador',
+    'serviço prestado','nota fiscal','nf-e','nfs-e','rps',
+    'projeto','contrato','honorário','consultoria','assessoria',
+    'desenvolvimento','programação','design','marketing','redação',
+    'fotografia profissional','video','filmagem','edição',
+    'pagamento projeto','recebimento projeto','cliente pagou'
+  ]},
+
+  /* ── 💰 INVESTIMENTOS ── */
+  { cat:'💰 Investimentos', tipo:'receita', conf:96, termos:[
+    'dividendo','dividendos','jcp','juros capital próprio',
+    'rendimento','rendimentos','cdb','lci','lca','tesouro direto',
+    'fundo','fii','fiagro','ação','ações','bolsa','b3',
+    'cripto','bitcoin','ethereum','btc','eth','staking','yield',
+    'poupança','aplicação','resgate','aporte','aporte mensal',
+    'xp','rico','clear','modal','warren','nu invest','inter invest',
+    'btg','itaú corretora','bradesco corretora','santander corretora'
+  ]},
+
+  /* ── 🔁 TRANSFERÊNCIA ── */
+  { cat:'🔁 Transferência', tipo:'receita', conf:90, termos:[
+    'pix recebido','ted recebido','doc recebido','transferência recebida',
+    'depósito','crédito em conta','devolução','reembolso','cashback',
+    'estorno','chargeback','volta','devolvido','restituição'
+  ]},
+
+  /* ── 📦 OUTROS / COMPRAS GERAIS ── */
+  { cat:'📦 Outros', tipo:'despesa', conf:70, termos:[
+    'amazon','shopee','mercado livre','americanas','submarino',
+    'magazineluiza','magazine luiza','casas bahia','extra',
+    'aliexpress','wish','shein','ebay','wish','olx','enjoei',
+    'presente','gift','lembrança','brinquedo','brinquedos','toy',
+    'pet shop','petshop','petlove','cobasi','petz','vet','veterinário',
+    'ração','banho e tosa','vacina pet','pet','animal','dog','cat',
+    'farmavida','drogão super','droga raia','pacheco','pague menos',
+    'cartório','despachante','advogado','contador','contabilidade',
+    'imposto','ir','irpf','declaração','receita federal',
+    'multa','infração','taxa','emolumento',
+    'salão','cabeleireiro','barbearia','manicure','pedicure',
+    'estética','sobrancelha','depilação','spa estético',
+    'presente','surpresa','cesta básica','doação','contribuição'
+  ]}
+];
+
+/* ──────────────────────────────────────────────
+   Motor de busca: tokeniza, normaliza e pontua
+   ────────────────────────────────────────────── */
+function normalizar(str){
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
+    .replace(/[^a-z0-9\s*]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+
+function classificarLocal(desc){
+  const d = normalizar(desc);
+  const tokens = d.split(' ');
+  let melhor = null, melhorPts = 0;
+
+  for(const regra of DICIONARIO){
+    let pts = 0;
+    for(const termo of regra.termos){
+      const t = normalizar(termo);
+      if(d === t){ pts = 200; break; }           // match exato total
+      if(d.startsWith(t)){ pts = Math.max(pts, 160); continue; }
+      if(d.includes(t)){ pts = Math.max(pts, 120); continue; }
+      // match por token individual (palavra isolada)
+      for(const tok of tokens){
+        if(tok === t){ pts = Math.max(pts, 100); break; }
+        if(tok.startsWith(t) && t.length>=4){ pts = Math.max(pts, 80); break; }
+      }
+    }
+    if(pts > melhorPts){ melhorPts = pts; melhor = {...regra, pts}; }
+  }
+
+  if(!melhor || melhorPts < 70) return null; // nada encontrado com certeza
+
+  // Calibrar confiança baseado na pontuação
+  const conf = melhorPts >= 160 ? melhor.conf
+             : melhorPts >= 120 ? Math.min(melhor.conf, 94)
+             : melhorPts >= 100 ? Math.min(melhor.conf, 88)
+             : Math.min(melhor.conf, 78);
+
+  return { categoria: melhor.cat, tipo: melhor.tipo, confianca: conf };
+}
+
+/* ── UI do classificador ── */
+let aiTimer = null;
+
+function onDescInput(val){
+  const chip  = document.getElementById('aiChip');
+  const label = document.getElementById('aiLabel');
+  clearTimeout(aiTimer);
+  if(val.trim().length < 2){ chip.style.display='none'; label.style.display='none'; return; }
+  // Debounce leve apenas para não piscar em digitação rápida
+  aiTimer = setTimeout(()=>{
+    const result = classificarLocal(val.trim());
+    if(!result){ chip.style.display='none'; label.style.display='none'; return; }
+    const { categoria, tipo, confianca } = result;
+    const confColor = confianca>=90?'var(--green)':confianca>=75?'var(--yellow)':'var(--red)';
+    label.style.display='block';
+    label.textContent='⚡ Sugestão automática';
+    label.style.color='var(--accent)';
+    chip.style.display='block';
+    chip.innerHTML=`
+      <div class="ai-chip" onclick="applyAISuggestion('${categoria.replace(/'/g,"\\'")}','${tipo}')">
+        <span>⚡</span>
+        <span class="chip-cat">${categoria}</span>
+        <span class="chip-conf" style="color:${confColor}">${confianca}%</span>
+        <span class="chip-apply">Aplicar</span>
+      </div>`;
+  }, 280);
+}
+
+function applyAISuggestion(cat, tipo){
+  document.getElementById('cat').value = cat;
+  if(tipo==='receita') setType('receita'); else setType('despesa');
+  const chip  = document.getElementById('aiChip');
+  const label = document.getElementById('aiLabel');
+  chip.innerHTML=`<div class="ai-chip" style="border-color:var(--green);background:rgba(45,222,152,.08);color:var(--green);cursor:default">✓ ${cat}</div>`;
+  label.textContent='✓ Aplicado';
+  label.style.color='var(--green)';
+  setTimeout(()=>{ chip.style.display='none'; label.style.display='none'; }, 1800);
+  toast('Categoria aplicada automaticamente!','success');
+}
+function save(){localStorage.setItem('df4',JSON.stringify(EX));}
+function fmt(v){return Math.abs(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function fd(d){const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function cc(c){if(!CC[c]){const i=Object.keys(CC).length%COLS.length;CC[c]=COLS[i];}return CC[c];}
+function toast(msg,type='info'){
+  const t=document.getElementById('toast');
+  document.getElementById('tIcon').textContent={success:'✓',error:'✕',info:'ℹ'}[type];
+  document.getElementById('tMsg').textContent=msg;
+  t.className='toast '+type+' show';
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* SEED */
+function seed(){
+  EX=[
+    // ── Parcelas carregadas em 20 JAN ──
+    {id:'n01',type:'despesa',desc:'Shop (parc. 2/2)',amt:35.50,cat:'📦 Outros',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n02',type:'despesa',desc:'Clínica Performe (parc. 5/6)',amt:116.66,cat:'💊 Saúde',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••9347'},
+    {id:'n03',type:'despesa',desc:'Clínica Genesis (parc. 3/3)',amt:50.00,cat:'💊 Saúde',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n04',type:'despesa',desc:'Mateus Supermercados (parc. 2/2)',amt:115.22,cat:'🍔 Alimentação',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    {id:'n05',type:'despesa',desc:'Amazon Mktplace Fastshops (parc. 5/12)',amt:66.58,cat:'📦 Outros',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••8777'},
+    {id:'n06',type:'despesa',desc:'Gaspar Matriz (parc. 3/6)',amt:63.04,cat:'🍔 Alimentação',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n07',type:'despesa',desc:'Mateus Supermercados (parc. 2/2)',amt:81.05,cat:'🍔 Alimentação',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n08',type:'despesa',desc:'GPPneus (parc. 6/6)',amt:368.33,cat:'🚗 Transporte',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    {id:'n09',type:'despesa',desc:'Nova Hidráulica (parc. 3/3)',amt:123.33,cat:'🚗 Transporte',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    {id:'n10',type:'despesa',desc:'Mateus Supermercados (parc. 2/2)',amt:44.73,cat:'🍔 Alimentação',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    {id:'n11',type:'despesa',desc:'MP *Giroscar (parc. 4/4)',amt:850.00,cat:'🚗 Transporte',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    {id:'n12',type:'despesa',desc:'Norte Farma Farmácias (parc. 3/3)',amt:29.65,cat:'💊 Saúde',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n13',type:'despesa',desc:'Localiza RAC (parc. 2/3)',amt:2076.23,cat:'🚗 Transporte',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    {id:'n14',type:'despesa',desc:'Lojas Le Biscuit (parc. 10/10)',amt:109.90,cat:'📦 Outros',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    {id:'n15',type:'despesa',desc:'Shopee *3Celetrônico (parc. 4/4)',amt:67.00,cat:'📦 Outros',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••5770'},
+    {id:'n16',type:'despesa',desc:'Renov Toyota (parc. 6/6)',amt:172.84,cat:'🚗 Transporte',date:'2026-01-20',pay:'💳 Crédito',note:'Nubank ••••2456'},
+    // ── 30 JAN ──
+    {id:'n17',type:'despesa',desc:'Mateus Supermercados (parc. 1/3)',amt:65.72,cat:'🍔 Alimentação',date:'2026-01-30',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n18',type:'despesa',desc:'Sua Academia',amt:144.01,cat:'💊 Saúde',date:'2026-01-30',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    {id:'n19',type:'despesa',desc:'Cabana do Marco',amt:45.00,cat:'🍔 Alimentação',date:'2026-01-30',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n20',type:'despesa',desc:'Amazon Prime BR',amt:19.90,cat:'🎮 Lazer',date:'2026-01-30',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    // ── 31 JAN ──
+    {id:'n21',type:'despesa',desc:'Apple.com/Bill',amt:19.90,cat:'🎮 Lazer',date:'2026-01-31',pay:'💳 Crédito',note:'Nubank ••••1705'},
+    // ── 01 FEV ──
+    {id:'n22',type:'despesa',desc:'Fastcomet (USD 13,95)',amt:75.88,cat:'💡 Utilidades',date:'2026-02-01',pay:'💳 Crédito',note:'Internacional – Nubank ••••6301'},
+    {id:'n23',type:'despesa',desc:'IOF – Fastcomet',amt:2.66,cat:'💡 Utilidades',date:'2026-02-01',pay:'💳 Crédito',note:'IOF compra internacional'},
+    {id:'n24',type:'despesa',desc:'Burger King',amt:69.90,cat:'🍔 Alimentação',date:'2026-02-01',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    // ── 02 FEV ──
+    {id:'n25',type:'despesa',desc:'Uber Trip',amt:13.95,cat:'🚗 Transporte',date:'2026-02-01',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n26',type:'despesa',desc:'Mateus Supermercados (parc. 1/2)',amt:65.25,cat:'🍔 Alimentação',date:'2026-02-02',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n27',type:'despesa',desc:'99 Ride',amt:3.10,cat:'🚗 Transporte',date:'2026-02-02',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n28',type:'despesa',desc:'Uber Trip',amt:20.15,cat:'🚗 Transporte',date:'2026-02-02',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n29',type:'despesa',desc:'Google Workspace',amt:98.00,cat:'💡 Utilidades',date:'2026-02-02',pay:'💳 Crédito',note:'Nubank ••••2456'},
+    // ── 03 FEV ──
+    {id:'n30',type:'despesa',desc:'TIM – Telefonia',amt:60.99,cat:'💡 Utilidades',date:'2026-02-03',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    // ── 04 FEV ──
+    {id:'n31',type:'despesa',desc:'Mateus Supermercados (parc. 1/2)',amt:366.87,cat:'🍔 Alimentação',date:'2026-02-04',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n32',type:'despesa',desc:'Amazon Ad Free Prime',amt:10.00,cat:'🎮 Lazer',date:'2026-02-04',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    // ── 05 FEV ──
+    {id:'n33',type:'despesa',desc:'Mateus Supermercados (parc. 1/2)',amt:46.64,cat:'🍔 Alimentação',date:'2026-02-05',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    // ── 07 FEV ──
+    {id:'n34',type:'despesa',desc:'Uber Trip',amt:12.95,cat:'🚗 Transporte',date:'2026-02-07',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    // ── 08 FEV ──
+    {id:'n35',type:'despesa',desc:'MP *Pizzaria',amt:39.00,cat:'🍔 Alimentação',date:'2026-02-08',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    // ── 09 FEV ──
+    {id:'n36',type:'despesa',desc:'iFood Club',amt:7.95,cat:'🍔 Alimentação',date:'2026-02-09',pay:'💳 Crédito',note:'Nubank ••••7331'},
+    {id:'n37',type:'despesa',desc:'Netflix',amt:69.80,cat:'🎮 Lazer',date:'2026-02-09',pay:'💳 Crédito',note:'Nubank ••••0910'},
+    // ── 10 FEV ──
+    {id:'n38',type:'despesa',desc:'Adeventos',amt:9.50,cat:'🎮 Lazer',date:'2026-02-10',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n39',type:'despesa',desc:'Mateus Supermercados (parc. 1/2)',amt:52.00,cat:'🍔 Alimentação',date:'2026-02-10',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    // ── 12 FEV ──
+    {id:'n40',type:'despesa',desc:'Adeventos',amt:7.60,cat:'🎮 Lazer',date:'2026-02-12',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n41',type:'despesa',desc:'Burger King',amt:46.80,cat:'🍔 Alimentação',date:'2026-02-12',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n42',type:'despesa',desc:'Burger King',amt:11.90,cat:'🍔 Alimentação',date:'2026-02-12',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    // ── 13 FEV ──
+    {id:'n43',type:'despesa',desc:'Apple.com/Bill',amt:19.90,cat:'🎮 Lazer',date:'2026-02-13',pay:'💳 Crédito',note:'Nubank ••••1705'},
+    // ── 14 FEV ──
+    {id:'n44',type:'despesa',desc:'Uber Trip',amt:7.95,cat:'🚗 Transporte',date:'2026-02-14',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    {id:'n45',type:'despesa',desc:'Mateus Supermercados (parc. 1/2)',amt:83.45,cat:'🍔 Alimentação',date:'2026-02-14',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    // ── 16 FEV ──
+    {id:'n46',type:'despesa',desc:'99app',amt:13.93,cat:'🚗 Transporte',date:'2026-02-16',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    // ── 17 FEV ──
+    {id:'n47',type:'despesa',desc:'Mateus Supermercados (parc. 1/2)',amt:25.09,cat:'🍔 Alimentação',date:'2026-02-17',pay:'💳 Crédito',note:'Nubank ••••3027'},
+    // ── 20 FEV ──
+    {id:'n48',type:'despesa',desc:'Mateus Supermercados (parc. 1/2)',amt:38.20,cat:'🍔 Alimentação',date:'2026-02-20',pay:'💳 Crédito',note:'Nubank ••••3027'},
+  ];
+  save();
+}
+</script>
+</body>
+</html>
